@@ -35,13 +35,13 @@ export class Angulartics2GoogleAnalytics {
 	}
 
   pageTrack(path: string) {
-		if (_gaq) {
+		if ('undefined' !== typeof _gaq) {
 			_gaq.push(['_trackPageview', path]);
 			for (var accountName of this.angulartics2.settings.ga.additionalAccountNames) {
 				_gaq.push([accountName + '._trackPageview', path]);
 			};
 		}
-		if (ga) {
+		if ('undefined' !== typeof ga) {
 			if (this.angulartics2.settings.ga.userId) {
 				ga('set', '&uid', this.angulartics2.settings.ga.userId);
 			}
@@ -77,7 +77,7 @@ export class Angulartics2GoogleAnalytics {
 			properties.value = isNaN(parsed) ? 0 : parsed;
 		}
 
-		if (ga) {
+		if ('undefined' !== typeof ga) {
 			var eventOptions = {
 				eventCategory: properties.category,
 				eventAction: action,
@@ -100,7 +100,7 @@ export class Angulartics2GoogleAnalytics {
 			for (let accountName of this.angulartics2.settings.ga.additionalAccountNames) {
 				ga(accountName + '.send', 'event', eventOptions);
 			}
-		} else if (_gaq) {
+		} else if ('undefined' !== typeof _gaq) {
 			_gaq.push(['_trackEvent', properties.category, action, properties.label, properties.value, properties.noninteraction]);
 		}
 	}
@@ -118,7 +118,7 @@ export class Angulartics2GoogleAnalytics {
 	 */
 	exceptionTrack(properties: any) {
 		if (!properties || !properties.appId || !properties.appName || !properties.appVersion) {
-			console.error('Must be setted appId, appName and appVersion.');
+			console.error('Properties appId, appName and appVersion are required to be set.');
 			return;
 		}
 
@@ -159,13 +159,13 @@ export class Angulartics2GoogleAnalytics {
 			return;
 		}
 
-		if (ga) {
+		if ('undefined' !== typeof ga) {
 			ga('send', 'timing', properties);
 		}
 	}
 
 	private setDimensionsAndMetrics(properties: any) {
-		if (ga) {
+		if ('undefined' !== typeof ga) {
 			// add custom dimensions and metrics
 			for (var idx = 1; idx <= 200; idx++) {
 				if (properties['dimension' + idx.toString()]) {
