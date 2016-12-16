@@ -1,135 +1,78 @@
-import { Component, Injectable } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { RouterTestingModule } from '@angular/router/testing';
-import { SpyLocation } from '@angular/common/testing';
-import { TestBed, ComponentFixture, fakeAsync, inject } from '@angular/core/testing';
+import {provide, Component} from '@angular/core';
+import {Location} from '@angular/common';
+import {SpyLocation} from '@angular/common/testing';
+import {
+  async,
+  it,
+  inject,
+  describe,
+  ddescribe,
+  expect,
+  beforeEach,
+  beforeEachProviders,
+  fakeAsync
+} from '@angular/core/testing';
+import {
+  TestComponentBuilder,
+  ComponentFixture
+} from '@angular/compiler/testing';
 
-import { advance, createRoot } from '../test.mocks';
-
-import { Angulartics2Module } from '../';
-import { Angulartics2 } from './angulartics2';
+import {advance} from '../test.mocks';
+import {Angulartics2} from './angulartics2';
+import {Angulartics2On} from './angulartics2On';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000;
 
-@Injectable()
-export class DummyProvider {
+export function main() {
+  describe('angulartics2On', () => {
 
-  constructor(
-    private angulartics2: Angulartics2
-  ) {}
-}
+    var fixture: ComponentFixture<any>;
+    var compiled: any;
+    var EventSpy: any;
 
-@Component({
-  selector: 'root-comp',
-  template: `<a [angulartics2On]="'click'" [angularticsEvent]="'InitiateSearch'"></a>`
-})
-class RootCmp {
-  name: string;
-}
+    beforeEachProviders(() => [
+      provide(Location, { useClass: SpyLocation }),
+      Angulartics2
+    ]);
 
-@Component({
-  selector: 'root-comp',
-  template: `
-    <button (click)="triggerEvent($event)">Greet</button>
-    <a angulartics2On (customEvent)="eventTrack($event)" [angularticsEvent]="'InitiateSearch'"></a>
-  `
-})
-class RootCmp1 {
-  name: string;
-}
-
-@Component({
-  selector: 'root-comp',
-  template: `<div [angulartics2On]="'click'" [angularticsEvent]="'InitiateSearch'" [angularticsCategory]="'Search'"></div>`
-})
-
-class RootCmp2 {
-  name: string;
-}
-
-@Component({
-  selector: 'root-comp',
-  template: `<a [angulartics2On]="'click'" [angularticsCategory]="'Search'">InitiateSearch</a>`
-})
-class RootCmp3 {
-  name: string;
-}
-
-describe('angulartics2On', () => {
-
-  var fixture: ComponentFixture<any>;
-  var compiled: any;
-  var EventSpy: any;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        RouterTestingModule,
-        Angulartics2Module.forRoot([ DummyProvider ])
-      ],
-      declarations: [
-        RootCmp,
-        RootCmp1,
-        RootCmp2,
-        RootCmp3
-      ],
-      providers: [
-        { provide: Location, useClass: SpyLocation }
-      ]
+    beforeEach(function() {
+      EventSpy = jasmine.createSpy('EventSpy');
     });
 
-    EventSpy = jasmine.createSpy('EventSpy');
+    it('should not send on and event fields to the eventTrack function',
+      fakeAsync(inject([TestComponentBuilder, Angulartics2],
+        (tcb: TestComponentBuilder, angulartics2: Angulartics2) => {
+          fixture = tcb.overrideTemplate(RootCmp, `<div [angulartics2On]="'click'" [angularticsEvent]="'InitiateSearch'" [angularticsCategory]="'Search'"></div>`).createFakeAsync(RootCmp);
+          advance(fixture);
+          expect(EventSpy).not.toHaveBeenCalled();
+          angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
+          compiled = fixture.debugElement.nativeElement.children[0];
+          compiled.click();
+          advance(fixture);
+          expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { category: 'Search', eventType: 'click' } });
+        })));
+
+    it('should infer event',
+      fakeAsync(inject([TestComponentBuilder, Angulartics2],
+        (tcb: TestComponentBuilder, angulartics2: Angulartics2) => {
+          fixture = tcb.overrideTemplate(RootCmp, `<a [angulartics2On]="'click'" [angularticsCategory]="'Search'">InitiateSearch</a>`).createFakeAsync(RootCmp);
+          advance(fixture);
+          expect(EventSpy).not.toHaveBeenCalled();
+          angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
+          compiled = fixture.debugElement.nativeElement.children[0];
+          compiled.click();
+          advance(fixture);
+          expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { category: 'Search', eventType: 'click' } });
+        })));
+
   });
 
-  it('should subscribe to element events',
-    fakeAsync(inject([Angulartics2],
-      (angulartics2: Angulartics2) => {
-        fixture = createRoot(RootCmp);
-        expect(EventSpy).not.toHaveBeenCalled();
-        angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
-        compiled = fixture.debugElement.nativeElement.children[0];
-        compiled.click();
-        advance(fixture);
-        expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { eventType: 'click' } });
-      })));
-
-  // WIP: trying to implement a way to subscribe to custom event types
-  xit('should subscribe to custom eventemiter',
-    fakeAsync(inject([Angulartics2],
-      (angulartics2: Angulartics2) => {
-        fixture = createRoot(RootCmp1);
-        expect(EventSpy).not.toHaveBeenCalled();
-        angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
-        compiled = fixture.debugElement.nativeElement.children[0];
-        compiled.click();
-        advance(fixture);
-        expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { eventType: undefined } });
-      })));
-
-  it('should not send on and event fields to the eventTrack function',
-    fakeAsync(inject([Angulartics2],
-      (angulartics2: Angulartics2) => {
-        fixture = createRoot(RootCmp2);
-        expect(EventSpy).not.toHaveBeenCalled();
-        angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
-        compiled = fixture.debugElement.nativeElement.children[0];
-        compiled.click();
-        advance(fixture);
-        expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { category: 'Search', eventType: 'click' } });
-      })));
-
-  // Need refactor or maybe just remove functionality as it might break in other platforms other than web browsers.
-  xit('should infer event',
-    fakeAsync(inject([Angulartics2],
-      (angulartics2: Angulartics2) => {
-        fixture = createRoot(RootCmp3);
-        expect(EventSpy).not.toHaveBeenCalled();
-        angulartics2.eventTrack.subscribe((x: any) => EventSpy(x));
-        compiled = fixture.debugElement.nativeElement.children[0];
-        compiled.click();
-        advance(fixture);
-        expect(EventSpy).toHaveBeenCalledWith({ action: 'InitiateSearch', properties: { category: 'Search', eventType: 'click' } });
-      })));
-
-});
+  @Component({
+    selector: 'root-comp',
+    template: '',
+    directives: [Angulartics2On]
+  })
+  class RootCmp {
+    name: string;
+  }
+}

@@ -10,14 +10,13 @@ npm-debug.log
 coverage
 *.js
 !karma.conf.js
-!webpack.test.js
-!helpers.js
-!spec-bundle.js
+!karma-test-shim.js
 *.map
 *.d.ts
 typings
-dist
-*.metadata.js
+./providers
+./core
+./index.js
 
 #################
 ## JetBrains
@@ -44,4 +43,3 @@ Desktop.ini
 
 # Mac crap
 .DS_Store
-
