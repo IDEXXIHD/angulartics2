@@ -14,16 +14,21 @@
     "noImplicitAny": true,
     "noImplicitReturns": false,
     "noImplicitUseStrict": false,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "types": [
+      "jasmine",
+      "node",
+      "applicationinsights-js"
+    ],
+    "lib": ["es2015", "dom"],
+    "outDir": "dist"
   },
   "files": [
-    "typings/index.d.ts",
-    "index.ts",
-    "src/providers/angulartics2-google-analytics.ts",
-    "src/providers/angulartics2-kissmetrics.ts",
-    "src/providers/angulartics2-mixpanel.ts",
-    "src/providers/angulartics2-piwik.ts",
-    "src/providers/angulartics2-segment.ts"
+    "src/index.ts"
   ],
-  "compileOnSave": false
+  "compileOnSave": false,
+  "angularCompilerOptions": {
+    "skipTemplateCodegen": true
+  }
 }
